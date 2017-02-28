@@ -1,15 +1,36 @@
-var express = require("express");
-var app = express(); 
-var bodyParser = require("body-parser");
+var express     = require("express");
+    app         = express(); 
+    bodyParser  = require("body-parser");
+    mongoose    = require("mongoose");
 
+mongoose.connect("mongodb://localhost/yelp_camp")
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 
-var campgrounds = [
-        {name: "Salmon Creek", image: "https://farm5.staticflickr.com/4137/4812576807_8ba9255f38.jpg"},
-        {name: "Granite Hill", image: "https://farm3.staticflickr.com/2580/3942698066_9157ac5123.jpg"},
-        {name: "Mountain Duck", image: "https://farm9.staticflickr.com/8039/7930464504_d02f777308.jpg"}
-    ]
+// Schema Setup
+var campgroundSchema = new mongoose.Schema ({
+    name: String,
+    image: String, 
+    description: String
+});
+
+var Campground = mongoose.model("Campground", campgroundSchema);
+
+/*Campground.create(
+     {
+         name: "Mountain Goat's Rest", 
+         image: "https://farm7.staticflickr.com/6057/6234565071_4d20668bbd.jpg",
+         description: "This is a huge granite hill, no bathrooms.  No water. Beautiful granite!"
+         
+     },
+     function(err, campground){
+      if(err){
+          console.log(err);
+      } else {
+          console.log("NEWLY CREATED CAMPGROUND: ");
+          console.log(campground);
+      }
+    });*/
 
 // Routes
 // landing page
@@ -17,26 +38,53 @@ app.get("/", function(req, res) {
     res.render("landing");
 });
 
-//show all campground details
+// INDEX - show all campgrounds
 app.get("/campgrounds", function(req, res) {
-    res.render("campgrounds", {campgrounds:campgrounds});
+    // Get all campgrounds from DB
+    Campground.find({}, function(err, allcampgrounds) {
+        if(err) {
+            console.log(err);
+        } else {
+            res.render("index", {campgrounds:allcampgrounds});
+        }
+    });
 });
 
-// create a new campground using the form
+// CREATE - add new campground to the DB
 app.post("/campgrounds", function(req, res) {
     // get data from form and add to campgrounds array
     var name = req.body.name;
     var image= req.body.image;
-    var newCampground = {name: name, image: image};
-    campgrounds.push(newCampground);
-    // redirect back to campgrounds page
-    res.redirect("/campgrounds");
+    var desc = req.body.description;
+    var newCampground = {name: name, image: image, description: desc};
+    // Create a new campground and save to DB
+    Campground.create(newCampground, function(err, newlyCreated){
+        if(err) {
+            console.log(err);
+        } else {
+            // redirect back to campgrounds page
+            res.redirect("/campgrounds");
+        }
+    });
 });
 
-// shows the form and send the data to the post route
+// NEW - show form to create new campground
 app.get("/campgrounds/new", function(req, res) {
     res.render("new.ejs");
 });
+
+// SHOW - show more info about one campground
+app.get("/campgrounds/:id", function(req, res){
+    //find the campground with provided ID
+    Campground.findById(req.params.id, function(err, foundCampground){
+        if(err){
+            console.log(err);
+        } else {
+            //render show template with that campground
+            res.render("show", {campground: foundCampground});
+        }
+    });
+})
 
 /*If a user visits any other route, print:
 "Sorry, page not found...What are you doing with your life?"

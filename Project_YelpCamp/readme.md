@@ -1,4 +1,4 @@
-#YelpCamp
+#YelpCamp -v1
 
 * Add landing Page
 * Add Campgrounds Page that lists all campgrounds
@@ -24,3 +24,16 @@
 # Style the Navbar and Form
 * Add a navbar to all templates
 * Style the new campground form
+
+#YelpCamp -v2
+
+# Add Mongoose
+* Install and Configure Mongoose
+* Setup Campground model
+* Use campground model inside of our routes.
+
+#Show Page
+* Review the RESTful routes we've seen so far
+* Add description to our campground model
+* Show db.collection.drop()
+* Add a show route/template
